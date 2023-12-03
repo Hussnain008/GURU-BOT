@@ -1,29 +1,16 @@
+const free = 2000
+const prem = 5000
 
-//import db from '../lib/database.js'
-
-const rewards = {
-  exp: 9999,
-  money: 4999,
-  potion: 5,
+let handler = async (m, {conn, isPrems }) => {
+  let time = global.db.data.users[m.sender].lastclaim + 86400000
+  if (new Date - global.db.data.users[m.sender].lastclaim < 86400000) throw `You have already claimed your daily gold recently. Claim again in *${msToTime(time - new Date())}* `
+  global.db.data.users[m.sender].credit += isPrems ? prem : free
+  m.reply(`🎉 *${isPrems ? prem : free} gold has been added to your wallet*`)
+  global.db.data.users[m.sender].lastclaim = new Date * 1
 }
-const cooldown = 86400000
-let handler = async (m,{ conn} ) => {
-  let user = global.db.data.users[m.sender]
-  if (new Date - user.lastclaim < cooldown) throw `You have already claimed this daily claim!, wait for *${((user.lastclaim + cooldown) - new Date()).toTimeString()}*`
-  let text = ''
-  for (let reward of Object.keys(rewards)) {
-    if (!(reward in user)) continue
-    user[reward] += rewards[reward]
-    text += `*+${rewards[reward]}* ${global.rpg.emoticon(reward)}${reward}\n`
-  }
-  conn.sendButton(m.chat,'*––––––『 DAILY 』––––––*', text.trim(), null, [['Adventure', '.adventure'], ['Weekly', '.weekly']],m)
-  user.lastclaim = new Date * 1
-}
-handler.help = ['daily', 'claim']
-handler.tags = ['xp']
-handler.command = /^(daily|claim)$/i
-
-handler.cooldown = cooldown
+handler.help = ['daily']
+handler.tags = ['economy']
+handler.command = ['daily'] 
 
 export default handler
 
@@ -39,5 +26,5 @@ function msToTime(duration) {
   minutes = (minutes < 10) ? "0" + minutes : minutes
   seconds = (seconds < 10) ? "0" + seconds : seconds
 
-  return hours + " Horas " + minutes + " Minutos"
+  return hours + " Hours " + minutes + " Minutes"
 }
